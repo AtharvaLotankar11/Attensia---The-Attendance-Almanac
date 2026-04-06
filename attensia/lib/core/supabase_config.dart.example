@@ -1,0 +1,15 @@
+/// Supabase configuration
+/// 
+/// IMPORTANT: Never commit your actual keys to version control.
+/// 
+/// SETUP INSTRUCTIONS:
+/// 1. Copy this file and rename it to 'supabase_config.dart'
+/// 2. Replace the placeholder values with your actual Supabase credentials
+/// 3. The supabase_config.dart file is gitignored and won't be committed
+class SupabaseConfig {
+  // Replace with your Supabase project URL
+  static const String supabaseUrl = 'YOUR_SUPABASE_URL_HERE';
+  
+  // Replace with your Supabase anon/public key
+  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY_HERE';
+}

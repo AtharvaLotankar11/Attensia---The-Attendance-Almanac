@@ -33,7 +33,7 @@ class Subject {
     total++;
   }
 
-  // Convert to Map (for future Supabase integration)
+  // Convert to Map (for Supabase integration)
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -43,13 +43,13 @@ class Subject {
     };
   }
 
-  // Create from Map (for future Supabase integration)
+  // Create from Map (for Supabase integration)
   factory Subject.fromMap(Map<String, dynamic> map) {
     return Subject(
-      id: map['id'] ?? '',
-      name: map['name'] ?? '',
-      attended: map['attended'] ?? 0,
-      total: map['total'] ?? 0,
+      id: map['id']?.toString() ?? '',
+      name: map['name']?.toString() ?? '',
+      attended: (map['attended'] as num?)?.toInt() ?? 0,
+      total: (map['total'] as num?)?.toInt() ?? 0,
     );
   }
 

@@ -1,50 +1,44 @@
 import 'package:flutter/material.dart';
 import '../models/summary_model.dart';
-import '../../../sample_data.dart';
+import '../../../services/summary_service.dart';
+import '../../../services/attendance_service.dart';
 
 class SummaryController extends ChangeNotifier {
+  final SummaryService _summaryService = SummaryService();
+  final AttendanceService _attendanceService = AttendanceService();
+  
   AttendanceSummary? _summary;
   double _threshold = 75.0;
   bool _isLoading = false;
+  String? _error;
 
   // Getters
   AttendanceSummary? get summary => _summary;
   double get threshold => _threshold;
   bool get isLoading => _isLoading;
+  String? get error => _error;
 
   SummaryController() {
     _loadSummaryData();
   }
 
-  // Load summary data (currently using sample data)
+  // Load summary data from Supabase
   Future<void> _loadSummaryData() async {
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
-    // Simulate API delay
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    // Get subjects from sample data
-    final subjects = getSampleSubjects();
-
-    // Calculate totals
-    int totalAttended = 0;
-    int totalLectures = 0;
-
-    for (var subject in subjects) {
-      totalAttended += subject.attended;
-      totalLectures += subject.total;
+    try {
+      // Get dashboard data from Supabase
+      _summary = await _summaryService.getDashboardData();
+      _threshold = _summary?.threshold ?? 75.0;
+    } catch (e) {
+      _error = 'Failed to load summary: $e';
+      _summary = null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _summary = AttendanceSummary(
-      attendedLectures: totalAttended,
-      totalLectures: totalLectures,
-      totalSubjects: subjects.length,
-      threshold: _threshold,
-    );
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   // Update threshold
@@ -57,8 +51,13 @@ class SummaryController extends ChangeNotifier {
     
     notifyListeners();
 
-    // TODO: Save to Supabase in future
-    // await _supabaseService.updateThreshold(newThreshold);
+    try {
+      // Save to Supabase
+      await _attendanceService.updateMinAttendanceThreshold(newThreshold);
+    } catch (e) {
+      _error = 'Failed to update threshold: $e';
+      notifyListeners();
+    }
   }
 
   // Refresh summary data
@@ -73,9 +72,6 @@ class SummaryController extends ChangeNotifier {
     final currentPercentage = _summary!.percentage;
     if (currentPercentage >= _threshold) return 0;
 
-    // Formula: (attended + x) / (total + x) = threshold / 100
-    // Solving for x: x = (threshold * total - 100 * attended) / (100 - threshold)
-    
     final attended = _summary!.attendedLectures;
     final total = _summary!.totalLectures;
     
@@ -95,9 +91,6 @@ class SummaryController extends ChangeNotifier {
     final currentPercentage = _summary!.percentage;
     if (currentPercentage < _threshold) return 0;
 
-    // Formula: attended / (total + x) = threshold / 100
-    // Solving for x: x = (100 * attended / threshold) - total
-    
     final attended = _summary!.attendedLectures;
     final total = _summary!.totalLectures;
     
@@ -107,5 +100,29 @@ class SummaryController extends ChangeNotifier {
     final canMiss = (maxTotal - total).floor();
     
     return canMiss > 0 ? canMiss : 0;
+  }
+
+  // Get subject breakdown
+  Future<List<Map<String, dynamic>>> getSubjectBreakdown() async {
+    try {
+      return await _summaryService.getSubjectBreakdown();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // Get attendance trends
+  Future<List<Map<String, dynamic>>> getAttendanceTrends({int days = 30}) async {
+    try {
+      return await _summaryService.getAttendanceTrends(days: days);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // Clear error
+  void clearError() {
+    _error = null;
+    notifyListeners();
   }
 }

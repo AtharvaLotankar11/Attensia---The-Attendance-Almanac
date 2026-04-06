@@ -279,9 +279,47 @@ class _EditDayDialogState extends State<EditDayDialog> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: InkWell(
-                      onTap: () {
-                        widget.onSave(_selectedSubjects);
+                      onTap: () async {
+                        // Close dialog first
                         Navigator.pop(context);
+                        
+                        // Show loading indicator
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppTheme.borderColor, width: 3),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 3,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Saving...',
+                                    style: AppTheme.attendanceText.copyWith(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                        
+                        // Save the data
+                        await widget.onSave(_selectedSubjects);
+                        
+                        // Close loading dialog
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../controllers/attendance_controller.dart';
 import '../../../theme.dart';
+import '../../profile/profile_screen.dart';
+import '../../../services/profile_service.dart';
 
 class AttendancePage extends StatefulWidget {
   const AttendancePage({super.key});
@@ -29,8 +31,12 @@ class AttendancePageContent extends StatefulWidget {
 }
 
 class _AttendancePageContentState extends State<AttendancePageContent> {
+  final _profileService = ProfileService();
+  
   @override
   Widget build(BuildContext context) {
+    final profilePhotoUrl = _profileService.getProfilePhotoUrl();
+    
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -50,6 +56,52 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
             elevation: 0,
             title: const Text('Attensia'),
             actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 12, top: 4, bottom: 4),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    );
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppTheme.borderColor, width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.borderColor,
+                          offset: const Offset(3, 3),
+                          blurRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: profilePhotoUrl != null
+                          ? Image.network(
+                              profilePhotoUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.person,
+                                  color: AppTheme.primaryColor,
+                                  size: 20,
+                                );
+                              },
+                            )
+                          : Icon(
+                              Icons.person,
+                              color: AppTheme.primaryColor,
+                              size: 20,
+                            ),
+                    ),
+                  ),
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.only(right: 12, top: 4, bottom: 4),
                 child: Container(
@@ -101,6 +153,80 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
     return ListenableBuilder(
       listenable: widget.controller,
       builder: (context, child) {
+        // Show loading indicator
+        if (widget.controller.isLoading && widget.controller.subjects.isEmpty) {
+          return Center(
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.borderColor, width: 3),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 3,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading subjects...',
+                    style: AppTheme.attendanceText.copyWith(color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Show error if exists
+        if (widget.controller.error != null) {
+          return Center(
+            child: Container(
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.borderColor, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.borderColor,
+                    offset: const Offset(6, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: AppTheme.poorAttendance),
+                  const SizedBox(height: 16),
+                  Text('Error', style: AppTheme.dialogTitle),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.controller.error!,
+                    style: AppTheme.attendanceText,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildActionButton(
+                    label: 'RETRY',
+                    icon: Icons.refresh,
+                    color: AppTheme.primaryColor,
+                    onPressed: () {
+                      widget.controller.clearError();
+                      widget.controller.refresh();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Show empty state
         if (widget.controller.subjects.isEmpty) {
           return Center(
             child: Column(
@@ -112,18 +238,28 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
                   'No subjects added yet',
                   style: AppTheme.attendanceText.copyWith(color: Colors.grey.shade600),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  'Tap + to add your first subject',
+                  style: AppTheme.labelText.copyWith(color: Colors.grey.shade500),
+                ),
               ],
             ),
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(20),
-          itemCount: widget.controller.subjects.length,
-          itemBuilder: (context, index) {
-            final subject = widget.controller.subjects[index];
-            return _buildSubjectCard(subject);
-          },
+        // Show subjects list
+        return RefreshIndicator(
+          onRefresh: () => widget.controller.refresh(),
+          color: AppTheme.primaryColor,
+          child: ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: widget.controller.subjects.length,
+            itemBuilder: (context, index) {
+              final subject = widget.controller.subjects[index];
+              return _buildSubjectCard(subject);
+            },
+          ),
         );
       },
     );
@@ -325,16 +461,12 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
     );
   }
 
-  void _markPresent(String subjectId) {
-    setState(() {
-      widget.controller.markPresent(subjectId);
-    });
+  void _markPresent(String subjectId) async {
+    await widget.controller.markPresent(subjectId);
   }
 
-  void _markAbsent(String subjectId) {
-    setState(() {
-      widget.controller.markAbsent(subjectId);
-    });
+  void _markAbsent(String subjectId) async {
+    await widget.controller.markAbsent(subjectId);
   }
 
   void _showSettingsDialog() {
@@ -465,11 +597,9 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      widget.controller.updateThreshold(tempThreshold);
-                                    });
+                                  onTap: () async {
                                     Navigator.pop(context);
+                                    await widget.controller.updateThreshold(tempThreshold);
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -613,16 +743,14 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
                         ),
                         const SizedBox(height: 24),
                         InkWell(
-                          onTap: () {
+                          onTap: () async {
                             if (formKey.currentState!.validate()) {
-                              setState(() {
-                                widget.controller.addSubject(
-                                  nameController.text,
-                                  int.parse(attendedController.text),
-                                  int.parse(totalController.text),
-                                );
-                              });
                               Navigator.pop(context);
+                              await widget.controller.addSubject(
+                                nameController.text,
+                                int.parse(attendedController.text),
+                                int.parse(totalController.text),
+                              );
                             }
                           },
                           child: Container(

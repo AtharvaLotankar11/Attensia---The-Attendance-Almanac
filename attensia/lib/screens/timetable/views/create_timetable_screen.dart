@@ -323,12 +323,126 @@ class _CreateTimetableScreenState extends State<CreateTimetableScreen> {
     );
   }
 
-  void _saveTimetable() {
-    final timetable = _weekSchedule.entries
-        .map((entry) => TimetableDay(day: entry.key, subjects: entry.value))
-        .toList();
-    widget.controller.setFullTimetable(timetable);
-    Navigator.pop(context);
+  void _saveTimetable() async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.borderColor, width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.borderColor,
+                offset: const Offset(6, 6),
+                blurRadius: 0,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 3,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Saving timetable...',
+                style: AppTheme.attendanceText.copyWith(color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final timetable = _weekSchedule.entries
+          .map((entry) => TimetableDay(day: entry.key, subjects: entry.value))
+          .toList();
+      
+      await widget.controller.setFullTimetable(timetable);
+      
+      if (!mounted) return;
+      
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      // Close the create timetable screen
+      Navigator.of(context).pop();
+      
+      // Show success message after navigation
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.goodAttendance,
+              border: Border.all(color: AppTheme.borderColor, width: 3),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Timetable saved successfully!',
+                    style: AppTheme.buttonText.copyWith(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.poorAttendance,
+              border: Border.all(color: AppTheme.borderColor, width: 3),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Failed to save timetable: $e',
+                    style: AppTheme.buttonText.copyWith(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override

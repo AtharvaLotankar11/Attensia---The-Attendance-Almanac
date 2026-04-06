@@ -87,9 +87,93 @@ class _SummaryScreenContentState extends State<SummaryScreenContent> {
       builder: (context, child) {
         if (_controller.isLoading) {
           return Center(
-            child: CircularProgressIndicator(
-              color: AppTheme.primaryColor,
-              strokeWidth: 4,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.borderColor, width: 3),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 3,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading dashboard...',
+                    style: AppTheme.attendanceText.copyWith(color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Show error if exists
+        if (_controller.error != null) {
+          return Center(
+            child: Container(
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.borderColor, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.borderColor,
+                    offset: const Offset(6, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: AppTheme.poorAttendance),
+                  const SizedBox(height: 16),
+                  Text('Error', style: AppTheme.dialogTitle),
+                  const SizedBox(height: 8),
+                  Text(
+                    _controller.error!,
+                    style: AppTheme.attendanceText,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  InkWell(
+                    onTap: () {
+                      _controller.clearError();
+                      _controller.refreshSummary();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor,
+                        border: Border.all(color: AppTheme.borderColor, width: 3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.borderColor,
+                            offset: const Offset(4, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.refresh, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Text(
+                            'RETRY',
+                            style: AppTheme.buttonText.copyWith(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }
@@ -99,11 +183,16 @@ class _SummaryScreenContentState extends State<SummaryScreenContent> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 80, color: Colors.grey.shade400),
+                Icon(Icons.school_outlined, size: 80, color: Colors.grey.shade400),
                 const SizedBox(height: 16),
                 Text(
-                  'No data available',
+                  'No subjects added yet',
                   style: AppTheme.attendanceText.copyWith(color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Add subjects to see your dashboard',
+                  style: AppTheme.labelText.copyWith(color: Colors.grey.shade500),
                 ),
               ],
             ),
@@ -418,11 +507,9 @@ class _SummaryScreenContentState extends State<SummaryScreenContent> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      _controller.updateThreshold(tempThreshold);
-                                    });
+                                  onTap: () async {
                                     Navigator.pop(context);
+                                    await _controller.updateThreshold(tempThreshold);
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(vertical: 16),
