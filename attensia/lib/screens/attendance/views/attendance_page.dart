@@ -668,9 +668,9 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom + 16,
               ),
-            child: Form(
-              key: formKey,
-              child: Column(
+              child: Form(
+                key: formKey,
+                child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -780,7 +780,8 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
                       ],
                     ),
                   ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
