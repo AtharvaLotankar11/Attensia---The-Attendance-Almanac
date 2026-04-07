@@ -650,23 +650,24 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return Container(
-          margin: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: AppTheme.borderColor, width: 4),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.borderColor,
-                offset: const Offset(8, 8),
-                blurRadius: 0,
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
+        return SingleChildScrollView(
+          child: Container(
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: AppTheme.borderColor, width: 4),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.borderColor,
+                  offset: const Offset(8, 8),
+                  blurRadius: 0,
+                ),
+              ],
             ),
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
             child: Form(
               key: formKey,
               child: Column(
@@ -693,7 +694,7 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
                         _buildNeoBrutalTextField(
@@ -706,7 +707,7 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         _buildNeoBrutalTextField(
                           controller: attendedController,
                           label: 'ATTENDED LECTURES',
@@ -721,7 +722,7 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         _buildNeoBrutalTextField(
                           controller: totalController,
                           label: 'TOTAL LECTURES',
@@ -741,7 +742,7 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
                         InkWell(
                           onTap: () async {
                             if (formKey.currentState!.validate()) {
@@ -776,7 +777,6 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
                       ],
                     ),
                   ),

@@ -64,7 +64,10 @@ class _EditDayDialogState extends State<EditDayDialog> {
         side: BorderSide(color: AppTheme.borderColor, width: 4),
       ),
       child: Container(
-        constraints: const BoxConstraints(maxHeight: 600),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+          maxWidth: MediaQuery.of(context).size.width * 0.9,
+        ),
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: AppTheme.borderColor, width: 4),
@@ -103,7 +106,7 @@ class _EditDayDialogState extends State<EditDayDialog> {
             ),
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -145,7 +148,7 @@ class _EditDayDialogState extends State<EditDayDialog> {
                       ),
                     ),
                     if (_lectureCount > 0) ...[
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       Text(
                         'ASSIGN SUBJECTS',
                         style: AppTheme.labelText.copyWith(
@@ -153,10 +156,10 @@ class _EditDayDialogState extends State<EditDayDialog> {
                           letterSpacing: 1,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       ...List.generate(_lectureCount, (index) {
                         return Container(
-                          margin: const EdgeInsets.only(bottom: 16),
+                          margin: const EdgeInsets.only(bottom: 12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -242,7 +245,7 @@ class _EditDayDialogState extends State<EditDayDialog> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 border: Border(
                   top: BorderSide(color: AppTheme.borderColor, width: 4),
