@@ -777,7 +777,6 @@ class _AttendancePageContentState extends State<AttendancePageContent> {
                             ),
                           ),
                         ),
-                        ),
                       ],
                     ),
                   ),
